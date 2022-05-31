@@ -1,15 +1,13 @@
 package com.datagrokr.assignment.multipledb.controller;
 
-
-import com.datagrokr.assignment.multipledb.primary.dao.PrimaryBookRepository;
-import com.datagrokr.assignment.multipledb.primary.dao.PrimarySalesRepository;
-import com.datagrokr.assignment.multipledb.primary.dao.PrimaryUserRepository;
 import com.datagrokr.assignment.multipledb.primary.entity.PrimaryBook;
 import com.datagrokr.assignment.multipledb.primary.entity.PrimaryUser;
-import com.datagrokr.assignment.multipledb.secondary.dao.SecondaryBookRepository;
-import com.datagrokr.assignment.multipledb.secondary.dao.SecondaryUserRepository;
+import com.datagrokr.assignment.multipledb.primary.service.PrimaryBookService;
+import com.datagrokr.assignment.multipledb.primary.service.PrimaryUserService;
 import com.datagrokr.assignment.multipledb.secondary.entity.SecondaryBook;
 import com.datagrokr.assignment.multipledb.secondary.entity.SecondaryUser;
+import com.datagrokr.assignment.multipledb.secondary.service.SecondaryBookService;
+import com.datagrokr.assignment.multipledb.secondary.service.SecondaryUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,139 +17,127 @@ import java.util.Optional;
 @RestController
 public class MyController {
 
-    @Autowired
-    PrimaryBookRepository primaryBookRepository;
-    @Autowired
-    PrimaryUserRepository primaryUserRepository;
-    @Autowired
-    PrimarySalesRepository primarySalesRepository;
-    @Autowired
-    SecondaryBookRepository secondaryBookRepository;
-    @Autowired
-    SecondaryUserRepository secondaryUserRepository;
+    PrimaryBookService primaryBookService;
+    PrimaryUserService primaryUserService;
+    SecondaryBookService secondaryBookService;
+    SecondaryUserService secondaryUserService;
 
-//  Primary Database Controller
+    @Autowired
+    public MyController(PrimaryBookService primaryBookService, PrimaryUserService primaryUserService, SecondaryBookService secondaryBookService, SecondaryUserService secondaryUserService) {
+        this.primaryBookService = primaryBookService;
+        this.primaryUserService = primaryUserService;
+        this.secondaryBookService = secondaryBookService;
+        this.secondaryUserService = secondaryUserService;
+    }
+
+    //  Primary Database Controller
 //  Book Controller
     @RequestMapping(value="/primary/books", method= RequestMethod.GET)
     public List<PrimaryBook> getPrimaryDatabaseData() {
-        return primaryBookRepository.findAll();
+        return primaryBookService.getAllPrimaryBooks();
     }
 
     @GetMapping("/primary/books/{id}")
     public Optional<PrimaryBook> getBookById(@PathVariable("id") Integer primaryBookId){
-        return primaryBookRepository.findById(primaryBookId);
+        return primaryBookService.getPrimaryBookById(primaryBookId);
     }
 
     @PostMapping("/primary/books")
     public PrimaryBook addPrimaryBook(@RequestBody PrimaryBook primaryBook){
-        primaryBookRepository.save(primaryBook);
-        return primaryBook;
+        return primaryBookService.addPrimaryBook(primaryBook);
     }
 
     @DeleteMapping("/primary/books/{id}")
-    public void deletePrimaryBook(@PathVariable("id") Integer primaryBookId){
-        primaryBookRepository.deleteById(primaryBookId);
+    public String deletePrimaryBook(@PathVariable("id") Integer primaryBookId){
+        return primaryBookService.deletePrimaryBook(primaryBookId);
     }
 
     @PutMapping("/primary/books/{id}")
     public PrimaryBook updatePrimaryBook(@PathVariable("id") Integer primaryBookId, @RequestBody PrimaryBook primaryBook){
-        PrimaryBook book = new PrimaryBook();
-        book = primaryBookRepository.findById(primaryBookId).orElse(new PrimaryBook());
-        
-        book.setPrimaryBookId(primaryBook.getPrimaryBookId());
-        book.setPrimaryBookName(primaryBook.getPrimaryBookName());
-        book.setPrimaryGenre(primaryBook.getPrimaryGenre());
-        book.setPrimaryAuthor(primaryBook.getPrimaryAuthor());
-
-        return primaryBookRepository.save(book);
+        return primaryBookService.addOrUpdatePrimaryBook(primaryBookId,primaryBook);
     }
 
 // User Controller
     @GetMapping("/primary/users")
     public List<PrimaryUser> getAllPrimaryUsers(){
-        return primaryUserRepository.findAll();
+        return primaryUserService.getAllPrimaryUsers();
     }
 
     @GetMapping("/primary/users/{id}")
     public Optional<PrimaryUser> getPrimaryUserById(@PathVariable("id") Integer primaryUserId){
-        return primaryUserRepository.findById(primaryUserId);
+        return primaryUserService.getPrimaryUserById(primaryUserId);
     }
 
     @PostMapping("/primary/users")
     public PrimaryUser addPrimaryUser(@RequestBody PrimaryUser primaryUser){
-        return primaryUserRepository.save(primaryUser);
+        return primaryUserService.addPrimaryUser(primaryUser);
     }
 
     @PutMapping("/primary/users/{id}")
     public PrimaryUser updatePrimaryUser(@PathVariable("id") Integer primaryUserId, @RequestBody PrimaryUser primaryUser){
-        PrimaryUser user;
-        user = primaryUserRepository.findById(primaryUserId).orElse(new PrimaryUser());
-
-        user.setPrimaryUserName(primaryUser.getPrimaryUserName());
-
-        return primaryUserRepository.save(user);
+        return primaryUserService.addOrUpdatePrimaryUser(primaryUserId, primaryUser);
     }
 
     @DeleteMapping("/primary/users/{id}")
-    public void deletePrimaryUser(@PathVariable("id") Integer primaryUserId){
-        primaryUserRepository.deleteById(primaryUserId);
+    public String deletePrimaryUser(@PathVariable("id") Integer primaryUserId){
+        return primaryUserService.deletePrimaryUser(primaryUserId);
+
     }
 
 //  Secondary Database Controllers
 //  Books Controller
     @RequestMapping(value="/secondary/books", method=RequestMethod.GET)
     public List<SecondaryBook> getSecondaryDatabaseData() {
-        return secondaryBookRepository.findAll();
+        return secondaryBookService.getAllSecondaryBooks();
     }
 
     @GetMapping("/secondary/books/{id}")
     public Optional<SecondaryBook> getSecondaryBookById(@PathVariable("id") Integer secondaryBookId){
-        return secondaryBookRepository.findById(secondaryBookId);
+        return secondaryBookService.getSecondaryBookById(secondaryBookId);
     }
 
     @PostMapping("/secondary/books")
     public SecondaryBook addSecondaryBook(@RequestBody SecondaryBook secondaryBook){
-        return secondaryBookRepository.save(secondaryBook);
+        return secondaryBookService.addSecondaryBook(secondaryBook);
     }
 
     @PutMapping("/secondary/books/{id}")
     public SecondaryBook updateSecondaryBook(@PathVariable("id") Integer secondaryBookId, @RequestBody SecondaryBook secondaryBook){
-        SecondaryBook book = secondaryBookRepository.findById(secondaryBookId).orElse(new SecondaryBook());
 
-        book.setSecondaryBookName(secondaryBook.getSecondaryBookName());
-        book.setSecondaryGenre(secondaryBook.getSecondaryGenre());
-        book.setSecondaryAuthor(secondaryBook.getSecondaryAuthor());
-        return secondaryBookRepository.save(book);
+        return secondaryBookService.addOrUpdateSecondaryBook(secondaryBookId, secondaryBook);
     }
 
     @DeleteMapping("/secondary/books/{id}")
-    public void deleteSecondaryBook(@PathVariable("id") Integer secondaryBookId){
-        secondaryBookRepository.deleteById(secondaryBookId);
+    public String deleteSecondaryBook(@PathVariable("id") Integer secondaryBookId){
+        return secondaryBookService.deleteSecondaryBook(secondaryBookId);
     }
 
 // User Controller
 
     @GetMapping("/secondary/users")
     public List<SecondaryUser> getAllSecondaryUsers(){
-        return secondaryUserRepository.findAll();
+        return secondaryUserService.getAllSecondaryUsers();
     }
 
     @GetMapping("/secondary/users/{id}")
     public Optional<SecondaryUser> getSecondaryUserById(@PathVariable("id") Integer secondaryUserId){
-        return secondaryUserRepository.findById(secondaryUserId);
+        return secondaryUserService.getSecondaryUserById(secondaryUserId);
     }
 
     @PostMapping("/secondary/users")
     public SecondaryUser addSecondaryUser(@RequestBody SecondaryUser secondaryUser){
-        return secondaryUserRepository.save(secondaryUser);
+        return secondaryUserService.addSecondaryUser(secondaryUser);
     }
 
     @PutMapping("/secondary/users/{id}")
     public SecondaryUser updateSecondaryUser(@PathVariable("id") Integer secondaryUserId, @RequestBody SecondaryUser secondaryUser){
-        SecondaryUser user = secondaryUserRepository.findById(secondaryUserId).orElse(new SecondaryUser());
+        return secondaryUserService.addOrUpdateSecondaryUser(secondaryUserId, secondaryUser);
+    }
 
-        user.setSecondaryUserName(secondaryUser.getSecondaryUserName());
-        return secondaryUserRepository.save(user);
+    @DeleteMapping("/secondary/users/{id}")
+    public String deleteSecondaryUser(@PathVariable("id") Integer secondaryUserId){
+        return secondaryUserService.deleteSecondaryUser(secondaryUserId);
+
     }
 
 
